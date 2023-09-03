@@ -7,6 +7,21 @@ from ..score import Perplexity
 from ..typing import NDArray
 
 
+def get_predicted_labels(model, tokenizer, example: dict, prompt_id: int) -> NDArray[np.str_]:
+    cols = ["A", "B", "C", "D", "E"]
+    samples = []
+    for col in cols:
+        if prompt_id < 3:
+            samples.append(example["text"] + col)
+        elif prompt_id in [3, 4]:
+            samples.append(example["text"] + example[col])
+        else:
+            raise NotImplementedError(prompt_id)
+
+    perplexities = calc_perplexities(model, tokenizer, samples)
+    return np.take(cols, np.argsort(perplexities))
+
+
 def calc_perplexities(model, tokenizer, samples: list[str]) -> NDArray[np.float_]:
     perp = Perplexity()
 

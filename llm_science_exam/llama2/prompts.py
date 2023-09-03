@@ -24,10 +24,19 @@ C) {c}
 D) {d}
 E) {e}
 [/INST] {answer}""",
+    3: "{prompt}</s>{answer_text}",
+    4: """Question: {prompt}
+
+### Answer: {answer_text}"""
 }
 
 
 def get_prompt_template(prompt_id: int) -> PromptTemplate:
-    return PromptTemplate(
-        template=PROMPT_TEMPLATE[prompt_id], input_variables=["prompt", "a", "b", "c", "d", "e", "answer"]
-    )
+    if prompt_id < 3:
+        input_variables = ["prompt", "a", "b", "c", "d", "e", "answer"]
+    elif prompt_id in [3, 4]:
+        input_variables = ["prompt", "answer_text"]
+    else:
+        raise NotImplementedError(prompt_id)
+
+    return PromptTemplate(template=PROMPT_TEMPLATE[prompt_id], input_variables=input_variables)

@@ -16,13 +16,20 @@ import llm_science_exam.llama2
 # save_dir = pathlib.Path("SFT-llama2-7b") / "with_early_stopping_with_2_more_datasets"
 
 # save_dir = pathlib.Path("SFT-llama2-13b") / "with_early_stopping_with_2_more_datasets"
-save_dir = pathlib.Path("models") / "SFT-llama2-7b" / "with_extra_+6.5k_+13.5k_+1k"
+# save_dir = pathlib.Path("models") / "SFT-llama2-13b" / "with_extra_+6.5k_+13.5k_+1k"
+
+# save_dir = pathlib.Path("models") / "03-short-prompt" / "SFT-llama2-7b" / "with_extra_+6.5k_+13.5k_+1k"
+# save_dir = pathlib.Path("models") / "03-short-prompt" / "SFT-llama2-13b" / "with_extra_+6.5k_+13.5k_+1k"
+save_dir = pathlib.Path("models") / "03-short-prompt2" / "SFT-llama2-7b" / "with_extra_+6.5k_+13.5k_+1k"
+
+if save_dir.exists():
+    raise FileExistsError(save_dir)
 
 config = {
     "model": {
         "family": "Llama2",
-        "size": "7B",
-        # "size": "13B",
+        # "size": "7B",
+        "size": "13B",
     },
     "dataset": llm_science_exam.data.dataset.DatasetConfig(
         additional_datasets=[
@@ -34,7 +41,7 @@ config = {
         train_test_split=False,
         test_size=1,
     ),
-    "prompt_id": 1,
+    "prompt_id": 4,
 }
 
 dataset = llm_science_exam.data.dataset.get_dataset("train", config["dataset"])
@@ -65,10 +72,10 @@ lora_config = LoraConfig(
 
 training_args = TrainingArguments(
     output_dir=str(save_dir),
-    # per_device_train_batch_size=4,
-    # per_device_eval_batch_size=8,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=16,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=8,
+    # per_device_train_batch_size=8,
+    # per_device_eval_batch_size=16,
     gradient_accumulation_steps=2,
     # learning_rate=2e-4,
     # learning_rate=1e-4,
@@ -86,8 +93,8 @@ training_args = TrainingArguments(
     num_train_epochs=100,
     # max_steps=1000,
     optim="paged_adamw_8bit",
-    # fp16=True,
-    bf16=True,
+    fp16=True,
+    # bf16=True,
     weight_decay=0.001,
     run_name="baseline-llama2-sft",
     save_total_limit=3,  # can be increased, but beware of kaggle notebook output size limit
