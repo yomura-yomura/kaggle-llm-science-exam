@@ -10,11 +10,13 @@ __all__ = ["DatasetConfig", "get_dataset"]
 
 
 class DatasetConfig(TypedDict):
+    prompt_id: int
     additional_datasets: list[
         Literal[
             "radek1/additional-train-data-for-llm-science-exam",
             "radek1/15k-high-quality-examples",
             "leonidkulyk/wikipedia-stem-1k",
+            "cdeotte/60k-data-with-context-v2",
         ]
     ] | None
     train_test_split: bool
@@ -55,10 +57,10 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 )
                 extra1_df = pd.read_csv(extra_data_dir_path / "extra_train_set.csv").reset_index(names="id")
                 assert len(extra1_df) == 500
-                extra1_df["id"] += 1000
+                extra1_df["id"] += 1_000
                 extra2_df = pd.read_csv(extra_data_dir_path / "6000_train_examples.csv").reset_index(names="id")
                 assert len(extra2_df) == 6_000
-                extra2_df["id"] += 10000
+                extra2_df["id"] += 10_000
 
                 train_df = pd.concat([train_df, extra1_df, extra2_df]).reset_index(drop=True)
                 assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
@@ -72,7 +74,7 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 )
                 extra_df = pd.read_csv(extra_data_dir_path / "15k_gpt3.5-turbo.csv").reset_index(names="id")
                 assert len(extra_df) == 15_000
-                extra_df["id"] += 100000
+                extra_df["id"] += 100_000
 
                 train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
                 assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
@@ -86,7 +88,7 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 )
                 extra_df = pd.read_csv(extra_data_dir_path / "stem_1k_full_v1.csv").reset_index(names="id")
                 assert len(extra_df) == 1_000
-                extra_df["id"] += 150000
+                extra_df["id"] += 150_000
 
                 extra_df = extra_df.iloc[:, : len(train_df.columns)]
                 assert (
@@ -114,6 +116,22 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 # shuffle
                 if len(additional_datasets) > 0:
                     train_df = train_df.sample(frac=1, random_state=seed)
+
+            if "cdeotte/60k-data-with-context-v2" in additional_datasets:
+                extra_data_dir_path = (
+                    pj_struct_paths.get_data_dir_path()
+                    / "llm-se-extra-train-datasets"
+                    / "cdeotte"
+                    / "60k-data-with-context-v2"
+                )
+                extra_df = pd.read_csv(extra_data_dir_path / "all_12_with_context2.csv").reset_index(names="id")
+                assert len(extra_df) == 60_347, len(extra_df)
+                extra_df["id"] += 200_000
+
+                extra_df = extra_df[["id", "prompt", "A", "B", "C", "D", "E", "answer"]]
+
+                train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
+                assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
 
         dataset = DatasetDict()
         if train_df is not None:

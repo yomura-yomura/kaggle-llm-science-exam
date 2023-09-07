@@ -1,3 +1,7 @@
 dist/*
 !dist/dataset-metadata.json
+!dist/wheels
+!dist/wheels/dataset-metadata.json
 dash_server/
+.mypy_cache/
+gcp/

@@ -10,44 +10,28 @@ from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 import llm_science_exam.data.dataset
 import llm_science_exam.llama2
 
-# save_dir = pathlib.Path("SFT-llama2-7b") / "1000steps"
-# save_dir = pathlib.Path("SFT-llama2-7b") / "with_early_stopping_with_more_datasets"
-# save_dir = pathlib.Path("SFT-llama2-7b") / "1000steps_with_more_datasets"
-# save_dir = pathlib.Path("SFT-llama2-7b") / "with_early_stopping_with_2_more_datasets"
+config_path = "config/llama2.toml"
+# config_path = "config/platypus2.toml"
 
-# save_dir = pathlib.Path("SFT-llama2-13b") / "with_early_stopping_with_2_more_datasets"
-# save_dir = pathlib.Path("models") / "SFT-llama2-13b" / "with_extra_+6.5k_+13.5k_+1k"
 
-# save_dir = pathlib.Path("models") / "03-short-prompt" / "SFT-llama2-7b" / "with_extra_+6.5k_+13.5k_+1k"
-# save_dir = pathlib.Path("models") / "03-short-prompt" / "SFT-llama2-13b" / "with_extra_+6.5k_+13.5k_+1k"
-save_dir = pathlib.Path("models") / "03-short-prompt2" / "SFT-llama2-7b" / "with_extra_+6.5k_+13.5k_+1k"
+config = llm_science_exam.data.config.get_config(config_path)
+save_dir = llm_science_exam.data.config.get_checkpoint_path(config)
 
 if save_dir.exists():
     raise FileExistsError(save_dir)
 
-config = {
-    "model": {
-        "family": "Llama2",
-        # "size": "7B",
-        "size": "13B",
-    },
-    "dataset": llm_science_exam.data.dataset.DatasetConfig(
-        additional_datasets=[
-            "radek1/additional-train-data-for-llm-science-exam",
-            "radek1/15k-high-quality-examples",
-            "leonidkulyk/wikipedia-stem-1k",
-        ],
-        # train_test_split=True,
-        train_test_split=False,
-        test_size=1,
-    ),
-    "prompt_id": 4,
-}
+print(f"saves at {save_dir}")
 
 dataset = llm_science_exam.data.dataset.get_dataset("train", config["dataset"])
 dataset = llm_science_exam.llama2.dataset.add_prompt_field(
-    dataset, prompt_id=config["prompt_id"], new_field_name="text", with_answer=True
+    dataset,
+    model_family_name=config["model"]["family"],
+    prompt_id=config["dataset"]["prompt_id"],
+    new_field_name="text",
+    with_answer=True,
 )
+print(f"prompt example:\n{dataset['train']['text'][0]}")
+
 
 save_dir.mkdir(exist_ok=True, parents=True)
 with open(save_dir / "train_config.json", "w") as f:
@@ -80,7 +64,7 @@ training_args = TrainingArguments(
     # learning_rate=2e-4,
     # learning_rate=1e-4,
     learning_rate=5e-5,
-    logging_steps=20,
+    logging_steps=100,
     logging_strategy="steps",
     save_steps=100,
     save_strategy="steps",
@@ -90,10 +74,12 @@ training_args = TrainingArguments(
     # warmup_steps=2,
     warmup_ratio=0.03,
     #
-    num_train_epochs=100,
+    num_train_epochs=3,
     # max_steps=1000,
     optim="paged_adamw_8bit",
     fp16=True,
+    bf16=False,
+    # fp16=False,
     # bf16=True,
     weight_decay=0.001,
     run_name="baseline-llama2-sft",
@@ -120,9 +106,9 @@ supervised_finetuning_trainer = SFTTrainer(
     # ),
     callbacks=[
         EarlyStoppingCallback(
-            # early_stopping_patience=3
+            early_stopping_patience=5
             # early_stopping_patience=10
-            early_stopping_patience=50
+            # early_stopping_patience=50
         )
     ]
     if config["dataset"].get("train_test_split", False)

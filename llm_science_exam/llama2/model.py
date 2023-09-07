@@ -9,6 +9,7 @@ from peft import AutoPeftModelForCausalLM, LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, LlamaForCausalLM, LlamaTokenizerFast
 
 from .. import pj_struct_paths
+from ..data.config import ModelConfig
 from ..typing import FilePath
 from ..utils import timer
 
@@ -20,21 +21,16 @@ bnb_config = BitsAndBytesConfig(
 )
 
 
-def get_model(model_config: dict) -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
-    if model_config["family"] == "Llama2":
-        if model_config["size"] == "7B":
-            model_name = pj_struct_paths.get_data_dir_path() / "Llama2-7b-hf"
-        elif model_config["size"] == "13B":
-            model_name = pj_struct_paths.get_data_dir_path() / "weyaxi" / "llama2-13b"
-        else:
-            raise ValueError(f"unexpected model size: {model_config['size']}")
-    else:
-        raise NotImplementedError(f"unexpected model family: {model_config['family']}")
-
+def get_model(model_config: ModelConfig) -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
+    model_name = get_model_dir_path(model_config)
     print(f"-- Loading {model_name}")
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_name, quantization_config=bnb_config, trust_remote_code=True, device_map="auto"
+        model_name,
+        quantization_config=bnb_config,
+        trust_remote_code=True,
+        # torch_dtype=torch.float16,
+        device_map="auto",
     )
     # this should be set as False for fine-tuning
     model.config.use_cache = False
@@ -42,6 +38,24 @@ def get_model(model_config: dict) -> tuple[LlamaForCausalLM, LlamaTokenizerFast]
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
     return model, tokenizer
+
+
+def get_model_dir_path(model_config: ModelConfig) -> pathlib.Path:
+    if model_config["family"] == "Llama2":
+        if model_config["size"] == "7B":
+            model_name = pj_struct_paths.get_data_dir_path() / "Llama2-7b-hf"
+        elif model_config["size"] == "13B":
+            model_name = pj_struct_paths.get_data_dir_path() / "weyaxi" / "llama2-13b"
+        else:
+            raise ValueError(f"unexpected model size for family '{model_config['family']}': {model_config['size']}")
+    elif model_config["family"] == "Platypus2":
+        if model_config["size"] == "7B":
+            model_name = pj_struct_paths.get_data_dir_path() / "Platypus2-7B"
+        else:
+            raise ValueError(f"unexpected model size: {model_config['size']}")
+    else:
+        raise ValueError(f"unexpected model size for family '{model_config['family']}': {model_config['size']}")
+    return model_name
 
 
 def find_linear_layers(model: LlamaForCausalLM) -> list[str]:
@@ -73,8 +87,9 @@ def get_model_from_checkpoint(ckpt_path: FilePath) -> tuple[LlamaForCausalLM, Ll
                 device_map="auto",
             )
     else:
-        model, tokenizer = merge_model(ckpt_path)
-        model.to("cuda")
+        if not (ckpt_path / "merged" / "train_config.json").exists():
+            merge_model(ckpt_path)
+        return get_model_from_checkpoint(ckpt_path / "merged")
 
     return model, tokenizer
 
@@ -86,11 +101,7 @@ def merge_model(ckpt_path: FilePath):
     lora_config = LoraConfig.from_pretrained(str(ckpt_path))
 
     with timer("loading model"):
-        model = AutoPeftModelForCausalLM.from_pretrained(
-            str(ckpt_path),
-            config=lora_config,
-            # quantization_config=bnb_config
-        )
+        model = AutoPeftModelForCausalLM.from_pretrained(str(ckpt_path), config=lora_config)
 
     with timer("merge and unload"):
         model = model.merge_and_unload()

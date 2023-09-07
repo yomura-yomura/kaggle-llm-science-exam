@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Official Dataset
+
 echo "* Download the kaggle competitions dataset: kaggle-llm-science-exam"
 kaggle competitions download -c kaggle-llm-science-exam && \
 unzip -o kaggle-llm-science-exam.zip -d data/kaggle-llm-science-exam
@@ -12,14 +14,42 @@ kaggle datasets download -d lizhecheng/llama2-7b-hf && \
 unzip -o llama2-7b-hf.zip -d data/
 rm -f llama2-7b-hf.zip
 
-# Llama2 7B
+# Llama2 13B
+
+mkdir -p data/weyaxi/
 
 echo "* Download llama2-pretrained dataset: weyaxi/nousresearch"
 kaggle datasets download -d weyaxi/nousresearch && \
 unzip -o nousresearch.zip -d data/weyaxi/llama2-13b
 rm -f nousresearch.zip
 
-# additional radek1 datasets
+# for OpenBook
+
+echo "* Download sentence-transformer-pretrained dataset for OpenBook: yonaschanie/sentencetransformers-allminilml6v2"
+kaggle datasets download -d yonaschanie/sentencetransformers-allminilml6v2 && \
+unzip -o sentencetransformers-allminilml6v2.zip -d data/sentencetransformers-allminilml6v2
+rm -f sentencetransformers-allminilml6v2.zip
+
+echo "* Download wikipedia-faiss-index dataset for OpenBook: jjinho/wikipedia-2023-07-faiss-index"
+kaggle datasets download -d jjinho/wikipedia-2023-07-faiss-index && \
+unzip -o wikipedia-2023-07-faiss-index.zip -d data/wikipedia-2023-07-faiss-index
+rm -f wikipedia-2023-07-faiss-index.zip
+
+echo "* Download wikipedia-plaintext dataset for OpenBook: jjinho/wikipedia-20230701"
+kaggle datasets download -d jjinho/wikipedia-20230701 && \
+unzip -o wikipedia-20230701.zip -d data/wikipedia-20230701
+rm -f wikipedia-20230701.zip
+
+# Additional Dataset
+
+mkdir -p data/llm-se-extra-train-datasets/cdeotte
+
+echo "* Download additional dataset: cdeotte/60k-data-with-context-v2"
+kaggle datasets download -d cdeotte/60k-data-with-context-v2 && \
+unzip -o 60k-data-with-context-v2.zip -d data/llm-se-extra-train-datasets/cdeotte/60k-data-with-context-v2
+rm -f 60k-data-with-context-v2.zip
+
+# Additional radek1 Datasets
 
 mkdir -p data/llm-se-extra-train-datasets/radek1
 
@@ -34,7 +64,7 @@ kaggle datasets download -d radek1/15k-high-quality-examples && \
 unzip -o 15k-high-quality-examples.zip -d data/llm-se-extra-train-datasets/radek1/15k-high-quality-examples
 rm -f 15k-high-quality-examples.zip
 
-# additional leonidkulyk datasets
+# Additional leonidkulyk Datasets
 
 mkdir -p data/llm-se-extra-train-datasets/leonidkulyk
 

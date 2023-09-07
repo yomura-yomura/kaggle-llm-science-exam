@@ -1,0 +1,19 @@
+project_name = "02-trained-with-only-extra-datasets"
+exp_name = "with_extra_+60k"
+
+[model]
+family = "Llama2"
+#size = "7B"
+size = "13B"
+
+[dataset]
+prompt_id = 1
+
+additional_datasets = [
+    # "radek1/additional-train-data-for-llm-science-exam",
+    # "radek1/15k-high-quality-examples",
+    # "leonidkulyk/wikipedia-stem-1k",
+    "cdeotte/60k-data-with-context-v2",
+]
+train_test_split = false
+test_size = 1
