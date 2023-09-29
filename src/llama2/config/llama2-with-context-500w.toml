@@ -1,7 +1,8 @@
 #project_name = "02-trained-with-only-extra-datasets"
 project_name = "05-with-context"
 
-exp_name = "with_extra_+60k"
+#exp_name = "500w"
+exp_name = "500w-with-prompt-as-answer"
 
 [model]
 family = "Llama2"
@@ -9,7 +10,7 @@ size = "7B"
 #size = "13B"
 
 [dataset]
-prompt_id = 1
+prompt_id = 7
 
 additional_datasets = [
     # "radek1/additional-train-data-for-llm-science-exam",
@@ -19,24 +20,26 @@ additional_datasets = [
 ]
 train_test_split = false
 test_size = 1
-with_context = false
+with_context = true
+
+[dataset.context]
+upper_limit_of_n_words = 500
 
 [train]
 per_device_train_batch_size = 4
 per_device_eval_batch_size = 8
 gradient_accumulation_steps = 2
 
-#learning_rate = 5e-5
 learning_rate = 8e-5
 weight_decay = 0.001
 
-logging_steps = 200
-save_steps = 200
+logging_steps = 100
+save_steps = 100
 save_total_limit = 3
 
 #lr_scheduler_type = "constant"
 lr_scheduler_type = "cosine"
-warmup_steps = 1000
+warmup_steps = 500
 
 num_train_epochs = 5
 

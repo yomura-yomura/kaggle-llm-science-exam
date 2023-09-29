@@ -13,6 +13,5 @@ def get_model(device: str = "cuda") -> SentenceTransformer:
 
     model = SentenceTransformer(str(model_name), device="cpu")
     model.max_seq_length = max_seq_length
-    # model.half()
     model.to(device)
     return model

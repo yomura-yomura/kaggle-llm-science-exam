@@ -1,12 +1,10 @@
-#project_name = "02-trained-with-only-extra-datasets"
-project_name = "05-with-context"
-
+project_name = "02-trained-with-only-extra-datasets"
 exp_name = "with_extra_+60k"
 
 [model]
 family = "Llama2"
-size = "7B"
-#size = "13B"
+#size = "7B"
+size = "13B"
 
 [dataset]
 prompt_id = 1
@@ -19,25 +17,22 @@ additional_datasets = [
 ]
 train_test_split = false
 test_size = 1
-with_context = false
 
 [train]
-per_device_train_batch_size = 4
+per_device_train_batch_size = 2
 per_device_eval_batch_size = 8
 gradient_accumulation_steps = 2
 
-#learning_rate = 5e-5
-learning_rate = 8e-5
+learning_rate = 5e-5
 weight_decay = 0.001
 
-logging_steps = 200
-save_steps = 200
-save_total_limit = 3
+logging_steps = 300
+save_steps = 300
+save_total_limit = 1
 
-#lr_scheduler_type = "constant"
 lr_scheduler_type = "cosine"
 warmup_steps = 1000
 
-num_train_epochs = 5
+num_train_epochs = 3
 
 early_stopping_patience=5

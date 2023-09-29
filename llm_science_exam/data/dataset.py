@@ -9,7 +9,7 @@ from .. import pj_struct_paths
 __all__ = ["DatasetConfig", "get_dataset"]
 
 
-class DatasetConfig(TypedDict):
+class DatasetConfig(TypedDict, total=False):
     prompt_id: int
     additional_datasets: list[
         Literal[
@@ -21,13 +21,39 @@ class DatasetConfig(TypedDict):
     ] | None
     train_test_split: bool
     test_size: float
+    with_context: bool
+
+    context: "DatasetContextConfig"
 
 
-def get_dataset(dataset_type: Literal["train", "valid", "test"], config: DatasetConfig, seed: int = 42) -> DatasetDict:
+class DatasetContextConfig(TypedDict, total=False):
+    upper_limit_of_n_words: int
+    top_n_sentences: int
+
+
+def get_dataset(
+    dataset_type: Literal["train", "valid", "test"],
+    config: DatasetConfig,
+    *,
+    seed: int = 42,
+) -> DatasetDict:
+    if config.get("with_context", False):
+        columns = ["id", "prompt", "context", "A", "B", "C", "D", "E"]
+    else:
+        columns = ["id", "prompt", "A", "B", "C", "D", "E"]
+
+    if dataset_type in ["train", "valid"]:
+        columns.append("answer")
+
     df = pd.read_csv(
-        pj_struct_paths.get_kaggle_dataset_dir_path()
+        # pj_struct_paths.get_kaggle_dataset_dir_path()
+        # / f"{'train' if dataset_type in ['train', 'valid'] else 'test'}.csv"
+        pj_struct_paths.get_data_dir_path()
+        / "datasets_with_context"
         / f"{'train' if dataset_type in ['train', 'valid'] else 'test'}.csv"
     )
+    df["context"] = get_context_from_top_contexts(df, config["context"]["top_n_sentences"])
+    df = df[columns]
 
     if dataset_type in ("train", "valid"):
         valid_df = None
@@ -40,7 +66,7 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
             if config["test_size"] == 0:
                 train_df = df
             else:
-                train_df = pd.DataFrame(columns=["id", "prompt", "A", "B", "C", "D", "E", "answer"])
+                train_df = pd.DataFrame(columns=columns)
                 valid_df = df
 
         if dataset_type == "train":
@@ -63,7 +89,6 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 extra2_df["id"] += 10_000
 
                 train_df = pd.concat([train_df, extra1_df, extra2_df]).reset_index(drop=True)
-                assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
 
             if "radek1/15k-high-quality-examples" in additional_datasets:
                 extra_data_dir_path = (
@@ -77,7 +102,6 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 extra_df["id"] += 100_000
 
                 train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
-                assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
 
             if "leonidkulyk/wikipedia-stem-1k" in additional_datasets:
                 extra_data_dir_path = (
@@ -111,27 +135,60 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
                 assert len(extra_df.dropna()) == len(extra_df)
 
                 train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
-                assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
-
-                # shuffle
-                if len(additional_datasets) > 0:
-                    train_df = train_df.sample(frac=1, random_state=seed)
 
             if "cdeotte/60k-data-with-context-v2" in additional_datasets:
                 extra_data_dir_path = (
                     pj_struct_paths.get_data_dir_path()
-                    / "llm-se-extra-train-datasets"
+                    # / "llm-se-extra-train-datasets"
+                    / "datasets_with_context"
+                    / "extra"
                     / "cdeotte"
                     / "60k-data-with-context-v2"
                 )
-                extra_df = pd.read_csv(extra_data_dir_path / "all_12_with_context2.csv").reset_index(names="id")
-                assert len(extra_df) == 60_347, len(extra_df)
+                # extra_df = pd.read_csv(extra_data_dir_path / "all_12_with_context2.csv").reset_index(names="id")
+                extra_df = (
+                    pd.read_csv(extra_data_dir_path / "all_12_with_context2.csv")
+                    .drop(columns="id")
+                    .reset_index(names="id")
+                )
+                extra_df["context"] = get_context_from_top_contexts(extra_df, config["context"]["top_n_sentences"])
+                # assert len(extra_df) == 60_347, len(extra_df)
+                # extra_df = extra_df[extra_df["source"].isin([5, 6, 7, 8])]
+                assert len(extra_df) == 16_139, len(extra_df)
+
                 extra_df["id"] += 200_000
 
-                extra_df = extra_df[["id", "prompt", "A", "B", "C", "D", "E", "answer"]]
+                extra_df = extra_df[columns]
 
                 train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
-                assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
+
+            if "cdeotte/40k-data-with-context-v2/ScienceQA" in additional_datasets:
+                extra_data_dir_path = (
+                    pj_struct_paths.get_data_dir_path()
+                    / "llm-se-extra-train-datasets"
+                    / "cdeotte"
+                    / "40k-data-with-context-v2"
+                )
+                extra_df = pd.read_csv(extra_data_dir_path / "ScienceQA_with_context2.csv")
+                extra_df = (
+                    extra_df[extra_df["subject"] == "natural science"]
+                    .query("image.notnull()")[columns[1:]]
+                    .reset_index(drop=True)
+                    .reset_index(names="id")
+                )
+                assert len(extra_df) == 6332, len(extra_df)
+                extra_df["id"] += 300_000
+
+                train_df = pd.concat([train_df, extra_df]).reset_index(drop=True)
+
+            # shuffle
+            if len(additional_datasets) > 0:
+                train_df = train_df.sample(frac=1, random_state=seed)
+
+            assert train_df["id"].nunique() == len(train_df), "duplicate id detected."
+
+            # print(f"drop nan: {len(train_df):,} -> {len(train_df.dropna()):,}")
+            # train_df = train_df.dropna()
 
         dataset = DatasetDict()
         if train_df is not None:
@@ -145,3 +202,9 @@ def get_dataset(dataset_type: Literal["train", "valid", "test"], config: Dataset
         raise ValueError(f"unexpected dataset_type '{dataset_type}'")
 
     return dataset
+
+
+def get_context_from_top_contexts(df: pd.DataFrame, top_n_sentences: int) -> pd.Series:
+    return df[[f"context_top{top + 1}" for top in range(top_n_sentences)]].agg(
+        lambda contexts: "\n".join(f"- {c}" for c in contexts if isinstance(c, str)), axis=1
+    )

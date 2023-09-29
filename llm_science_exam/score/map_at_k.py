@@ -1,6 +1,8 @@
 """
 Copied from https://www.kaggle.com/code/nandeshwar/mean-average-precision-map-k-metric-explained-code/notebook
 """
+from typing import Literal
+
 import numpy as np
 
 from ..typing import NDArray
@@ -42,7 +44,7 @@ def ap_at_k(actual, predicted, k: int = 10) -> float:
     return score / min(len(actual), k)
 
 
-def map_at_k(actual, predicted, k: int = 10) -> NDArray[np.float_]:
+def map_at_k(actual, predicted, *, k: int = 10, reduction: Literal["average"] | None = "average") -> NDArray[np.float_]:
     """
     Computes the mean average precision at k.
     This function computes the mean average precision at k between two lists of items.
@@ -61,11 +63,14 @@ def map_at_k(actual, predicted, k: int = 10) -> NDArray[np.float_]:
     score : double
             The mean average precision at k over the input lists
     """
-    return np.mean([ap_at_k(a, p, k) for a, p in zip(actual, predicted)])
+    map_at_k_list = np.array([ap_at_k(a, p, k) for a, p in zip(actual, predicted)])
+    if reduction == "average":
+        return np.mean(map_at_k_list)
+    return map_at_k_list
 
 
-def map_at_3(actual, predicted) -> NDArray[np.float_]:
-    return map_at_k(actual, predicted, k=3)
+def map_at_3(actual, predicted, *, reduction: Literal["average"] | None = "average") -> NDArray[np.float_]:
+    return map_at_k(actual, predicted, k=3, reduction=reduction)
 
 
 # def precision_at_k(r, k):

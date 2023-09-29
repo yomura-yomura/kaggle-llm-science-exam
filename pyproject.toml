@@ -8,9 +8,40 @@ description = "Package of llm-science-exam"
 readme = "README.md"
 requires-python = ">= 3.10"
 version = "0.0.1"
-dynamic = ["dependencies"]
+dependencies = [
+    "faiss-gpu==1.7.2",
+    "datasets==2.14.4",
+]
 
 [project.optional-dependencies]
+dev = [
+    "tomli==2.0.1",
+    "tqdm==4.64.1",
+    "peft==0.4.0",
+    "transformers==4.32.0",
+    "accelerate==0.21.0",
+    "tokenizers==0.13.3",
+    "langchain==0.0.270",
+    "bitsandbytes==0.41.1",
+    "numpy==1.23.5",
+    "pandas==1.5.3",
+    "polars==0.19.2",
+    "scipy==1.11.2",
+    "trl==0.5.0",
+    "scikit-learn==1.3.0",
+
+    # for OpenBook
+    "sentence-transformers==2.2.2",
+    "blingfire==0.1.8",
+
+    # for deberta
+    "protobuf==4.24.3",
+
+    "plotly==5.16.1",
+
+    "build~=0.10.0",
+    "virtualenv~=20.24.3",
+]
 dash = [
     "dash[diskcache]~=2.12.1",
     "dash_bootstrap_components~=1.4.1",
@@ -19,9 +50,13 @@ dash = [
 train = [
     "trl==0.6.0"
 ]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+pycharm = [
+#    "git+https://github.com/yomura-yomura/plotly_utility",
+    "kaleido ~= 0.2.1"
+]
+wiki-article = [
+    "umap-learn ~= 0.5.4"
+]
 
 [tool.setuptools.packages.find]
 exclude = ["data", "build", "dist", "src", "meta"]
