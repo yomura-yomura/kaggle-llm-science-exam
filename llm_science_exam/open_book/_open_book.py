@@ -3,9 +3,21 @@ import pandas as pd
 import tqdm
 from datasets import Dataset
 
-from .. import pj_struct_paths
 from . import predict, search
 from .model import get_model
+import ctypes
+import gc
+import re
+import time
+
+import blingfire as bf
+import faiss
+import pandas as pd
+
+# For RAG
+import torch
+from scipy.spatial.distance import cdist
+from sentence_transformers import SentenceTransformer
 
 
 def get_context(
@@ -97,20 +109,6 @@ def get_df_with_reduced_context(df: pd.DataFrame, *, use_all_answers_in_prompt: 
     df["context"] = [" ".join(sentences[:idx]) for idx, sentences in zip(idx_over_th, sentences_list)]
     return df
 
-
-import ctypes
-import gc
-import re
-import time
-
-import blingfire as bf
-import faiss
-import pandas as pd
-
-# For RAG
-import torch
-from scipy.spatial.distance import cdist
-from sentence_transformers import SentenceTransformer
 
 # NUM_TITLES = 5
 NUM_TITLES = 10

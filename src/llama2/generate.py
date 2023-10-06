@@ -1,7 +1,7 @@
 from transformers import GenerationConfig
 
 import llm_science_exam.data
-import llm_science_exam.llama2.model
+import llm_science_exam.model.llama2.model
 import llm_science_exam.pj_struct_paths
 
 llm_science_exam.pj_struct_paths.set_pj_struct_paths(
@@ -25,11 +25,11 @@ config["dataset"] = llm_science_exam.data.config.DatasetConfig(
     with_context=True,
 )
 
-model, tokenizer = llm_science_exam.llama2.model.get_model(model_config=config["model"])
+model, tokenizer = llm_science_exam.model.llama2.model.get_model(model_config=config["model"])
 
 
-dataset = llm_science_exam.data.dataset.get_dataset("train", config=config["dataset"])
-dataset = llm_science_exam.llama2.dataset.add_prompt_field(
+dataset = llm_science_exam.data.dataset.get_dataset("train", dataset_config=config["dataset"])
+dataset = llm_science_exam.model.llama2.dataset.add_prompt_field(
     dataset,
     model_family_name=config["model"]["family"],
     prompt_id=config["dataset"]["prompt_id"],
@@ -57,7 +57,7 @@ print(tokenizer.decode(outputs["sequences"][0]))
 print("-" * 10)
 print("Answer: " + dataset["train"]["answer"][idx])
 
-predicted = llm_science_exam.llama2.predict.get_predicted_labels(
+predicted = llm_science_exam.model.llama2.predict.get_predicted_probs(
     model,
     tokenizer,
     example,

@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.express as px
 import torch
 
-from ..typing import FilePath
+from ...typing import FilePath
 
 
 def get_learning_curve_plot(ckpt_path: FilePath, save_point: Literal["best", "latest"] = "best"):
@@ -27,6 +27,8 @@ def get_learning_curve_plot(ckpt_path: FilePath, save_point: Literal["best", "la
 
     n_steps_at_latest = int(ckpt_path.name.split("-")[1])
     n_epochs_at_latest = n_steps_at_latest * trainer_state["epoch"] / trainer_state["global_step"]
+
+    df["epoch"] = df["step"] * trainer_state["epoch"] / trainer_state["global_step"]
 
     other_metrics = df.columns[
         df.columns.str.startswith("eval_")
@@ -48,11 +50,16 @@ def get_learning_curve_plot(ckpt_path: FilePath, save_point: Literal["best", "la
 
     lc_df["col"] = "loss"
     for m in other_metrics:
-        lc_df.loc[lc_df["type"] == m, "col"] = m.replace("eval_", "")
+        col = m.replace("eval_", "")
+        if col.endswith("MAP@3"):
+            col = "MAP@3"
+        lc_df.loc[lc_df["type"] == m, "col"] = col
 
     fig = px.line(
         lc_df,
-        title=f"Learning Curve (lr={training_args['learning_rate']}, bs/dev={training_args['per_device_train_batch_size']})",
+        title=f"Learning Curve "
+        f"(lr={training_args['learning_rate']}"
+        f", bs/dev={training_args['per_device_train_batch_size']})",
         x="epoch",
         y="value",
         facet_row="col",

@@ -7,15 +7,17 @@ kaggle competitions download -c kaggle-llm-science-exam && \
 unzip -o kaggle-llm-science-exam.zip -d data/kaggle-llm-science-exam
 rm -f kaggle-llm-science-exam.zip
 
-kaggle datasets download -d ranchantan/kaggle-llm-science-exam-with-context && \
-unzip -o kaggle-llm-science-exam-with-context.zip -d data/kaggle-llm-science-exam-with-context/
-rm -f kaggle-llm-science-exam-with-context.zip
-
 
 echo "* Download the Wiki 270k STEM dataset: all-paraphs-parsed-expanded"
 kaggle datasets download -d mbanaei/all-paraphs-parsed-expanded && \
 unzip -o all-paraphs-parsed-expanded.zip -d data/all-paraphs-parsed-expanded
 rm -f all-paraphs-parsed-expanded.zip
+
+echo "* Download the Old Wiki 270k STEM dataset: stem-wiki-cohere-no-emb"
+kaggle datasets download -d mbanaei/stem-wiki-cohere-no-emb && \
+unzip -o stem-wiki-cohere-no-emb.zip -d data/stem-wiki-cohere-no-emb
+rm -f stem-wiki-cohere-no-emb.zip
+
 
 echo "* Download the faiss-index of the Wiki 270k STEM dataset: bge-small-faiss"
 kaggle datasets download -d simjeg/bge-small-faiss && \
@@ -88,6 +90,12 @@ kaggle datasets download -d radek1/15k-high-quality-examples && \
 unzip -o 15k-high-quality-examples.zip -d data/llm-se-extra-train-datasets/radek1/15k-high-quality-examples
 rm -f 15k-high-quality-examples.zip
 
+
+echo "* Download additional dataset: radek1/sci-or-not-sci-hypthesis-testing-pack"
+kaggle datasets download -d radek1/sci-or-not-sci-hypthesis-testing-pack %% \
+unzip -o sci-or-not-sci-hypthesis-testing-pack.zip -d data/llm-se-extra-train-datasets/radek1/sci-or-not-sci-hypthesis-testing-pack
+rm -f sci-or-not-sci-hypthesis-testing-pack.zip
+
 # Additional leonidkulyk Datasets
 
 mkdir -p data/llm-se-extra-train-datasets/leonidkulyk
@@ -97,7 +105,39 @@ kaggle datasets download -d leonidkulyk/wikipedia-stem-1k && \
 unzip -o wikipedia-stem-1k.zip -d data/llm-se-extra-train-datasets/leonidkulyk/wikipedia-stem-1k
 rm -f wikipedia-stem-1k.zip
 
+
+echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v2"
+kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v2 && \
+unzip -o llm-se-datasets-with-context-v2.zip -d data/llm-se-datasets-with-context-v2
+rm -f llm-se-datasets-with-context-v2.zip
+
+echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v3"
+kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v3 && \
+unzip -o llm-se-datasets-with-context-v3.zip -d data/llm-se-datasets-with-context-v3
+rm -f llm-se-datasets-with-context-v3.zip
+
+
 echo "* Download additional wiki-stem-articles dataset: ranchantan/llm-se-additional-wiki-stem-articles"
 kaggle datasets download -d ranchantan/llm-se-additional-wiki-stem-articles && \
 unzip -o llm-se-additional-wiki-stem-articles.zip -d data/llm-se-additional-wiki-stem-articles
 rm -f llm-se-additional-wiki-stem-articles.zip
+
+# Additional yalickj Datasets
+
+mkdir -p data/llm-se-extra-train-datasets/yalickj
+
+kaggle datasets download -d yalickj/dataset-wiki-new-1 && \
+unzip -o dataset-wiki-new-1.zip -d data/llm-se-extra-train-datasets/yalickj/dataset-wiki-new-1
+rm -f dataset-wiki-new-1.zip
+
+
+mkdir -p data/llm-se-extra-train-datasets/takeshisuzuki
+
+kaggle datasets download -d takeshisuzuki/additional-dataset-800articles-4000rows && \
+unzip -o additional-dataset-800articles-4000rows.zip -d data/llm-se-extra-train-datasets/takeshisuzuki/additional-dataset-800articles-4000rows
+rm -f additional-dataset-800articles-4000rows.zip
+
+
+kaggle datasets download -d ranchantan/kaggle-llm-science-exam-with-context && \
+unzip -o kaggle-llm-science-exam-with-context.zip -d data/kaggle-llm-science-exam-with-context/
+rm -f kaggle-llm-science-exam-with-context.zip

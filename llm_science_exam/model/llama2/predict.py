@@ -7,24 +7,22 @@ import tqdm
 from datasets import Dataset
 from transformers import LlamaForCausalLM, LlamaTokenizerFast
 
-from ..score import Perplexity
-from ..typing import NDArray
+from ...score import Perplexity
+from ...typing import NDArray
 from .prompts import PromptType, get_prompt_type
 
+ANSWERS = ["A", "B", "C", "D", "E"]
 
-def get_predicted_labels(
+
+def get_predicted_probs(
     model: LlamaForCausalLM,
     tokenizer: LlamaTokenizerFast,
     data: Dataset,
     *,
     model_family: str,
     prompt_id: int,
-    upper_limit_to_split_samples: int,
-    print_perplexities: bool = False,
     batch_size=8,
 ) -> NDArray[np.str_]:
-    answers = ["A", "B", "C", "D", "E"]
-
     prompt_type = get_prompt_type(model_family, prompt_id)
 
     if PromptType.yes_or_no_as_answer in prompt_type:
@@ -39,14 +37,14 @@ def get_predicted_labels(
                 cols = ["A", "B", "C", "D", "E"]
 
     if PromptType.yes_or_no_as_answer in prompt_type:
-        indices_list = np.arange(len(data)).reshape(-1, len(answers))
+        indices_list = np.arange(len(data)).reshape(-1, len(ANSWERS))
     else:
-        indices_list = np.array_split(np.arange(len(data)), int(len(data) / batch_size * len(answers)))
+        indices_list = np.array_split(np.arange(len(data)), int(len(data) / batch_size * len(ANSWERS)))
 
     answer_token_ids = [tokens[0] for tokens in tokenizer(cols, add_special_tokens=False)["input_ids"]]
     # answer_token_ids = 4874
     print(f"{answer_token_ids = }")
-    preds = []
+    probs_list = []
     for indices in tqdm.tqdm(indices_list, desc="inference"):
         samples = [data[int(i)]["text"] for i in indices]
 
@@ -55,18 +53,19 @@ def get_predicted_labels(
         with torch.no_grad():
             outputs = model.forward(**inputs.to(model.device))
             answer_token_logits = outputs["logits"][:, -1, answer_token_ids]
+            assert answer_token_logits.shape[0] == len(ANSWERS)
 
             if answer_token_logits.ndim == 1:
-                pred = answer_token_logits.detach().cpu().numpy()
+                logits = answer_token_logits
                 # pred = np.take(answers, np.argsort(logits, axis=-1), axis=-1)
             elif answer_token_logits.ndim == 2:
-                pred = torch.softmax(answer_token_logits, dim=1)[..., cols.index("yes")].detach().cpu().numpy()
+                logits = torch.softmax(answer_token_logits, dim=1)[..., cols.index("yes")]
             else:
                 assert False
-            pred = np.take(answers, np.argsort(pred, axis=-1)[..., ::-1], axis=-1)
-            del outputs
-        preds.append(pred)
-    return np.stack(preds, axis=0)
+            probs = torch.softmax(logits, dim=0).detach().cpu().numpy()
+            del outputs, logits
+        probs_list.append(probs)
+    return np.stack(probs_list, axis=0)
 
     # indices_list = np.array_split(np.arange(len(data)), int(len(data) / batch_size * len(answers)))
     #

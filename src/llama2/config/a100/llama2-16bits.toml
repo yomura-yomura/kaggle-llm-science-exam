@@ -1,8 +1,13 @@
 #project_name = "02-trained-with-only-extra-datasets"
-project_name = "06-16bits"
+project_name = "07-16bits-after-270k"
 
-exp_name = "yes_or_no_as_answer_with_context_v2"
-#exp_name = "yes_or_no_as_answer_with_context_from_ckpt"
+#exp_name = "270k-sci-r512-a64"
+#exp_name = "r-512-a-512-270k-sci"
+#exp_name = "r-128-a-512-270k-sci"
+#exp_name = "r-128-a-512-270k-60k"
+exp_name = "r-64-a-512-270k-stem"
+
+
 
 [model]
 family = "Llama2"
@@ -17,19 +22,23 @@ additional_datasets = [
 #     "radek1/additional-train-data-for-llm-science-exam",
 #     "radek1/15k-high-quality-examples",
 #     "leonidkulyk/wikipedia-stem-1k",
-    "cdeotte/60k-data-with-context-v2",
+#    "cdeotte/60k-data-with-context-v2",
+    "cdeotte/60k-data-with-context-v2/only-stem-generated-by-chatgpt",
+#    "radek1/sci-or-not-sci-hypthesis-testing-pack/sci",
 #    "cdeotte/40k-data-with-context-v2/ScienceQA"
+#    "yalickj/dataset-wiki-new-1",  # added to valid
 ]
 train_test_split = false
 test_size = 1
 with_context = true
 
 [dataset.context]
+version = 3
+top_n_sentences = 3
+
 #upper_limit_of_n_words = 200
 #upper_limit_of_n_words = 300
 upper_limit_of_n_words = -1
-
-top_n_sentences = 5
 
 [train]
 #per_device_train_batch_size = 8
@@ -42,21 +51,30 @@ top_n_sentences = 5
 #save_steps = 200
 
 per_device_train_batch_size = 1
-per_device_eval_batch_size = 1
-gradient_accumulation_steps = 2
+#per_device_train_batch_size = 1
+#per_device_eval_batch_size = 1
+per_device_eval_batch_size = 8
+#gradient_accumulation_steps = 2
+#gradient_accumulation_steps = 4
+gradient_accumulation_steps = 8
 
-logging_steps = 800
-save_steps = 800
+logging_steps = 200
+save_steps = 200
+#logging_steps = 2000
+#save_steps = 2000
+#logging_steps = 800  # batch size 2
+#save_steps = 800  # batch size 2
 #logging_steps = 400
 #save_steps = 400
-#logging_steps = 10
-#save_steps = 10
 
-learning_rate = 2e-5
+#logging_steps = 20
+#save_steps = 20
+save_total_limit = 2
+
+#learning_rate = 2e-5  # batch 2
+learning_rate = 4e-5
 
 weight_decay = 0.001
-
-save_total_limit = 2
 
 #lr_scheduler_type = "constant"
 lr_scheduler_type = "cosine"
@@ -65,11 +83,19 @@ warmup_steps = 100
 num_train_epochs = 2
 #num_train_epochs = 10
 
+#optim = "adamw_torch"
+optim = "paged_adamw_8bit"
+
 early_stopping_patience=10
 
 [train.lora]
-#r = 32
-r = 16
+#r = 512
+#r = 128
+r = 64
+#r = 16
 #r = 8
-alpha = 64
+
+#alpha = 64
+alpha = 512
+
 dropout = 0.1

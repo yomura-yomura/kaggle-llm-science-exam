@@ -1,4 +1,3 @@
-import json
 import pathlib
 import shutil
 import warnings
@@ -8,11 +7,12 @@ import bitsandbytes as bnb
 import torch
 import torch.nn
 from peft import AutoPeftModelForCausalLM, LoraConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, LlamaForCausalLM, LlamaTokenizerFast
+from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaForCausalLM, LlamaTokenizerFast
 
-from .. import pj_struct_paths
-from ..typing import FilePath
-from ..utils import timer
+from ... import pj_struct_paths
+from ...typing import FilePath
+from ...utils import timer
+from ..model import get_model_kwargs
 
 ModelFamily = Literal["Llama2", "Platypus2", "OpenOrca-Platypus2"]
 ModelSize = Literal["7B", "13B"]
@@ -22,14 +22,6 @@ class ModelConfig(TypedDict, total=True):
     family: ModelFamily
     size: ModelSize
     quant_n_bits: int
-
-
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16,
-)
 
 
 def get_model(model_config: ModelConfig) -> tuple[LlamaForCausalLM, LlamaTokenizerFast]:
@@ -45,20 +37,7 @@ def get_model(model_config: ModelConfig) -> tuple[LlamaForCausalLM, LlamaTokeniz
     return model, tokenizer
 
 
-def get_model_kwargs(quant_n_bits: int) -> dict:
-    model_kwargs = dict(
-        trust_remote_code=True,
-        device_map="auto",
-    )
-    if quant_n_bits == 4:
-        model_kwargs["quantization_config"] = bnb_config
-    elif quant_n_bits == 16:
-        model_kwargs["torch_dtype"] = torch.float16
-    elif quant_n_bits == 32:
-        model_kwargs["torch_dtype"] = torch.float32
-    else:
-        raise ValueError(f"unexpected quant_n_bits: {quant_n_bits}")
-    return model_kwargs
+
 
 
 def get_model_dir_path(model_config: ModelConfig) -> pathlib.Path:
@@ -147,34 +126,3 @@ def merge_model(ckpt_path: FilePath):
         shutil.copy(ckpt_path / "train_config.json", ckpt_path / "merged" / "train_config.json")
 
     return model, tokenizer
-
-
-def get_latest_checkpoint_path(ckpt_path: FilePath) -> pathlib.Path:
-    ckpt_path = pathlib.Path(ckpt_path)
-    if not ckpt_path.exists():
-        raise FileNotFoundError(f"given ckpt_path not exists: {ckpt_path}")
-
-    ckpt_paths = sorted(ckpt_path.glob("checkpoint-*"), key=lambda p: int(p.name.split("-")[1]))
-    latest_ckpt_path = ckpt_paths[-1]
-    print(f"latest: {latest_ckpt_path}")
-    return latest_ckpt_path
-
-
-def get_best_checkpoint_path(ckpt_path: FilePath, symlink_to_best: bool = True):
-    with open(get_latest_checkpoint_path(ckpt_path) / "trainer_state.json") as f:
-        trainer_state = json.load(f)
-
-    ckpt_path = pathlib.Path(ckpt_path)
-    best_ckpt_path = pathlib.Path(trainer_state["best_model_checkpoint"])
-    print(f"best: {best_ckpt_path}")
-    if not best_ckpt_path.exists():
-        raise FileNotFoundError(best_ckpt_path)
-
-    shutil.copy(ckpt_path / "train_config.json", best_ckpt_path / "train_config.json")
-    if symlink_to_best:
-        best_symlink_ckpt_path = ckpt_path / "best"
-        best_symlink_ckpt_path.unlink(missing_ok=True)
-        best_symlink_ckpt_path.symlink_to(best_ckpt_path.name)
-        return best_symlink_ckpt_path
-    else:
-        return best_ckpt_path

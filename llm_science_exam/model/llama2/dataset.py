@@ -1,6 +1,6 @@
 from datasets import Dataset, DatasetDict
 
-from .. import open_book
+from ... import open_book
 from .prompts import PromptType, get_prompt_template, get_prompt_type
 
 

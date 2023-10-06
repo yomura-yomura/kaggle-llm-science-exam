@@ -2,6 +2,7 @@
 Copied from https://www.kaggle.com/code/nandeshwar/mean-average-precision-map-k-metric-explained-code/notebook
 """
 from typing import Literal
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -44,20 +45,24 @@ def ap_at_k(actual, predicted, k: int = 10) -> float:
     return score / min(len(actual), k)
 
 
-def map_at_k(actual, predicted, *, k: int = 10, reduction: Literal["average"] | None = "average") -> NDArray[np.float_]:
+def map_at_k(
+    actual: Sequence[Sequence[str]],
+    predicted: Sequence[Sequence[str]],
+    *,
+    k: int = 10,
+    reduction: Literal["average"] | None = "average",
+) -> NDArray[np.float_]:
     """
     Computes the mean average precision at k.
     This function computes the mean average precision at k between two lists of items.
     Parameters
     ----------
-    actual : list
-             A list of lists of elements that are to be predicted
+    actual : A list of lists of elements that are to be predicted
              (order doesn't matter in the lists)
-    predicted : list
-                A list of lists of predicted elements
+    predicted : A list of lists of predicted elements
                 (order matters in the lists)
-    k : int, optional
-        The maximum number of predicted elements
+    k : The maximum number of predicted elements
+    reduction:
     Returns
     -------
     score : double
@@ -71,6 +76,16 @@ def map_at_k(actual, predicted, *, k: int = 10, reduction: Literal["average"] | 
 
 def map_at_3(actual, predicted, *, reduction: Literal["average"] | None = "average") -> NDArray[np.float_]:
     return map_at_k(actual, predicted, k=3, reduction=reduction)
+
+
+def print_map_at_3(true, pred):
+    map_at_3_scores = map_at_3(true, pred, reduction=None)
+
+    n = len(true)
+    top_i = [(pred[:, i - 1] == true).sum() for i in [1, 2, 3]]
+    print(f"top1 : {top_i[0]}/{n}, top2 : {top_i[1]}/{n}, top3 : {top_i[2]}/{n} (total={sum(top_i)} / {n})")
+    print(f"Accuracy: {100*top_i[0]/n:.1f}%, map3: {100*(top_i[0] + top_i[1]*1/2 + top_i[2]*1/3).sum()/n:.1f}%")
+    return np.mean(map_at_3_scores)
 
 
 # def precision_at_k(r, k):

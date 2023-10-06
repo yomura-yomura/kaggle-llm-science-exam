@@ -1,6 +1,8 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-import tqdm
 import numpy as np
+import tqdm
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from ..typing import NDArray
 
 # fmt: off
 stop_words = [
@@ -26,54 +28,65 @@ stop_words = [
 
 
 def retrieval(
-    df_valid,
+    df,
     modified_texts,
     *,
     #     chunk_size = 100_000,
     chunk_size=10_000,
     top_per_chunk=10,
     top_per_query=10,
-    n_articles_to_fit=500000,
-):
-    corpus_df_valid = df_valid.apply(
-        lambda row: f'{row["prompt"]}\n{row["prompt"]}\n{row["prompt"]}\n{row["A"]}\n{row["B"]}\n{row["C"]}\n{row["D"]}\n{row["E"]}',
+    n_articles_to_fit=500_000,
+) -> tuple[NDArray[np.int64], NDArray[np.float32]]:
+    corpus_df_valid = df.apply(
+        lambda row: "\n".join(
+            [row["prompt"], row["prompt"], row["prompt"], row["A"], row["B"], row["C"], row["D"], row["E"]]
+        ),
         axis=1,
     ).values
     vectorizer1 = TfidfVectorizer(
         ngram_range=(1, 2), token_pattern=r"(?u)\b[\w/.-]+\b|!|/|\?|\"|\'", stop_words=stop_words
     )
     vectorizer1.fit(corpus_df_valid)
-    vocab_df_valid = vectorizer1.get_feature_names_out()
 
     vectorizer = TfidfVectorizer(
         ngram_range=(1, 2),
         token_pattern=r"(?u)\b[\w/.-]+\b|!|/|\?|\"|\'",
         stop_words=stop_words,
-        vocabulary=vocab_df_valid,
+        vocabulary=vectorizer1.get_feature_names_out(),
     )
+    del vectorizer1
+
     vectorizer.fit(modified_texts[:n_articles_to_fit])
     corpus_vector = vectorizer.transform(corpus_df_valid)
 
     print(f"length of vectorizer vocab is {len(vectorizer.get_feature_names_out())}")
 
-    all_chunk_top_indices = []
-    all_chunk_top_values = []
+    articles_indices = np.zeros((len(df), top_per_query), dtype="i8")
+    top_scores = np.zeros((len(df), top_per_query), dtype="f4")
 
-    for idx in tqdm.tqdm(range(0, len(modified_texts), chunk_size)):
+    for idx in tqdm.tqdm(range(0, len(modified_texts), chunk_size), desc="retrieve wiki articles chunk by chunk"):
         wiki_vectors = vectorizer.transform(modified_texts[idx : idx + chunk_size])
         cosine_scores = (corpus_vector * wiki_vectors.T).toarray()
 
         chunk_top_indices = cosine_scores.argpartition(-top_per_chunk, axis=1)[:, -top_per_chunk:]
-        chunk_top_values = cosine_scores[np.arange(cosine_scores.shape[0])[:, np.newaxis], chunk_top_indices]
+        chunk_top_scores = np.take_along_axis(cosine_scores, chunk_top_indices, axis=1)
 
-        all_chunk_top_indices.append(chunk_top_indices + idx)
-        all_chunk_top_values.append(chunk_top_values)
+        chunk_top_indices += idx
 
-    top_indices_array = np.concatenate(all_chunk_top_indices, axis=1)
-    top_values_array = np.concatenate(all_chunk_top_values, axis=1)
+        order = np.argsort(chunk_top_scores, axis=1)[:, ::-1]
+        chunk_top_indices = np.take_along_axis(chunk_top_indices, order, axis=1)
+        chunk_top_scores = np.take_along_axis(chunk_top_scores, order, axis=1)
 
-    merged_top_scores = np.sort(top_values_array, axis=1)[:, -top_per_query:]
-    merged_top_indices = top_values_array.argsort(axis=1)[:, -top_per_query:]
-    articles_indices = top_indices_array[np.arange(top_indices_array.shape[0])[:, np.newaxis], merged_top_indices]
+        # update top_scores and article_indices
+        merged_indices = np.concatenate([articles_indices, chunk_top_indices], axis=1)
+        merged_scores = np.concatenate([top_scores, chunk_top_scores], axis=1)
 
-    return articles_indices, merged_top_scores
+        top_indices = merged_scores.argpartition(-top_per_query, axis=1)[:, -top_per_query:]
+        articles_indices[:] = np.take_along_axis(merged_indices, top_indices, axis=1)
+        top_scores[:] = np.take_along_axis(merged_scores, top_indices, axis=1)
+
+    order = np.argsort(top_scores, axis=1)[:, ::-1]
+    articles_indices = np.take_along_axis(articles_indices, order, axis=1)
+    top_scores = np.take_along_axis(top_scores, order, axis=1)
+
+    return articles_indices, top_scores

@@ -1,0 +1,63 @@
+project_name = "01-base"
+
+#exp_name = "test-shuffled2"
+#exp_name = "test-max-length-1024"
+exp_name = "test-max-length-1024-freeze-layers-0"
+
+[model]
+version = "v3"
+size = "large"
+#quant_n_bits = 32
+freeze_embeddings = true
+#freeze_layers = 18
+freeze_layers = 0
+
+[dataset]
+prompt_id = 1
+
+additional_datasets = [
+#     "radek1/additional-train-data-for-llm-science-exam",
+#     "radek1/15k-high-quality-examples",
+#     "leonidkulyk/wikipedia-stem-1k",
+    "cdeotte/60k-data-with-context-v2",
+#    "cdeotte/60k-data-with-context-v2/only-stem-generated-by-chatgpt",
+#    "radek1/sci-or-not-sci-hypthesis-testing-pack/sci",
+#    "cdeotte/40k-data-with-context-v2/ScienceQA"
+#    "yalickj/dataset-wiki-new-1",  # added to valid
+]
+train_test_split = false
+test_size = 1
+with_context = true
+#max_length = 256
+max_length = 1024
+
+[dataset.context]
+version = 3
+top_n_sentences = 3
+
+[train]
+per_device_train_batch_size = 1
+per_device_eval_batch_size = 4
+gradient_accumulation_steps = 8
+#gradient_accumulation_steps = 4
+#gradient_accumulation_steps = 1
+
+logging_steps = 25
+save_steps = 25
+save_total_limit = 2
+
+#optim = "adamw_torch"
+optim = "paged_adamw_8bit"
+
+learning_rate = 2e-5  # bs 8
+#learning_rate = 1e-5
+weight_decay = 0.01
+
+#lr_scheduler_type = "constant"
+lr_scheduler_type = "cosine"
+#warmup_steps = 1000
+warmup_ratio = 0.1
+
+num_train_epochs = 2
+
+early_stopping_patience=10

@@ -5,7 +5,7 @@ from typing import Any, Literal, TypedDict
 
 import tomli
 
-from .. import deberta, llama2
+# from ..model import deberta, llama2
 from ..typing import FilePath
 from .dataset import DatasetConfig
 
@@ -13,7 +13,7 @@ from .dataset import DatasetConfig
 class Config(TypedDict, total=False):
     project_name: str
     exp_name: str
-    model: llama2.model.ModelConfig | deberta.model.ModelConfig
+    model: dict
     dataset: DatasetConfig
     train: "TrainConfig"
     trainer_state: dict[str, Any]
@@ -64,8 +64,8 @@ def get_config(config_path: FilePath) -> Config:
     if "upper_limit_of_n_words" not in config["dataset"]["context"].keys():
         config["dataset"]["context"]["upper_limit_of_n_words"] = -1
 
-    if "quant_n_bits" not in config["model"]:
-        config["model"]["quant_n_bits"] = 4
+    # if "quant_n_bits" not in config["model"]:
+    #     config["model"]["quant_n_bits"] = 4
 
     return config
 

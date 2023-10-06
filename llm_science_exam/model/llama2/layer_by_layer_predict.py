@@ -12,8 +12,8 @@ from accelerate.utils.modeling import set_module_tensor_to_device
 from safetensors.torch import load_file
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
-from ..typing import FilePath
-from ..utils import clean_memory
+from ...typing import FilePath
+from ...utils import clean_memory
 
 
 def run_model(
@@ -25,9 +25,14 @@ def run_model(
     output_token_ids: Sequence[int] = (4874, 694),
 ):
     def run_on_device(split_df: pd.DataFrame, device: int):
+        clean_memory()
+
         model = ShardedLlama(checkpoint_path, device=device, dtype=torch.float16, max_length=max_length)
         f = functools.partial(get_tokens, tokenizer=model.tokenizer, max_length=max_length)
         inputs = split_df.apply(f, axis=1).values
+
+        del model.tokenizer
+        clean_memory()
 
         outputs = []
         for i, batch in enumerate(np.array_split(inputs, n_batches)):
@@ -38,8 +43,8 @@ def run_model(
         return outputs
 
     with ThreadPoolExecutor() as executor:
-        outputs = list(executor.map(run_on_device, devices, np.array_split(df, len(devices))))
-        return sum(outputs, [])
+        logits = list(executor.map(run_on_device, np.array_split(df, len(devices)), devices))
+        return sum(logits, [])
 
 
 system_prefix = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
@@ -59,10 +64,7 @@ Proposed answer:
 
 
 def get_prompts(row):
-    context = row["context"]
-
     prompt_prefix = system_prefix.format(context=row["context"], prompt=row["prompt"])
-
     prompt_suffix = [f"{row[letter]}\n\n### Response:\n" for letter in "ABCDE"]
 
     return prompt_prefix, prompt_suffix
@@ -142,6 +144,8 @@ class ShardedLlama:
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.padding_side = "right"
 
+        self.tokenizer_pad_token_id = self.tokenizer.pad_token_id
+
         self.init_model()
         self.layer_names = (
             ["model.embed_tokens"]
@@ -192,7 +196,7 @@ class ShardedLlama:
         # Send batch to device
         batch = [(prefix.to(self.device), suffix.to(self.device)) for prefix, suffix in inputs]
         n_suffixes = len(batch[0][1])
-        suffix_eos = [(suffix != self.tokenizer.pad_token_id).sum(1) - 1 for _, suffix in inputs]
+        suffix_eos = [(suffix != self.tokenizer_pad_token_id).sum(1) - 1 for _, suffix in inputs]
 
         # Create attention mask for the largest input, and position ids to use KV cache
         attention_mask = torch.finfo(self.dtype).min * torch.ones(self.max_length, self.max_length)
@@ -238,9 +242,13 @@ class ShardedLlama:
                         )
 
                         # Run suffix
-                        pos = position_ids[:, len_p : len_p + len_s].repeat(n_suffixes, 1)
-                        attn = attention_mask[:, :, -len_s:, -len_p - len_s :].repeat(n_suffixes, 1, 1, 1)
-                        kv_cache = (k_cache.repeat(n_suffixes, 1, 1, 1), v_cache.repeat(n_suffixes, 1, 1, 1))
+                        # pos = position_ids[:, len_p : len_p + len_s].repeat(n_suffixes, 1)
+                        # attn = attention_mask[:, :, -len_s:, -len_p - len_s :].repeat(n_suffixes, 1, 1, 1)
+                        # kv_cache = (k_cache.repeat(n_suffixes, 1, 1, 1), v_cache.repeat(n_suffixes, 1, 1, 1))
+                        pos = position_ids[:, len_p : len_p + len_s].expand(n_suffixes, -1)
+                        attn = attention_mask[:, :, -len_s:, -len_p - len_s :].expand(n_suffixes, -1, -1, -1)
+                        kv_cache = (k_cache.repeat(n_suffixes, 1, 1, 1), v_cache.expand(n_suffixes, -1, -1, -1))
+
                         new_suffix = layer(suffix, past_key_value=kv_cache, position_ids=pos, attention_mask=attn)[0]
                         batch[j] = (new_prefix, new_suffix)
 
