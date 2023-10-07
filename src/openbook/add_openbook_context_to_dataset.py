@@ -39,10 +39,14 @@ csv_path = (
     # / "additional-dataset-800articles-4000rows"
     # / "additional_dataset_800articles_4000rows.csv"
     #
-    / "llm-se-extra-train-datasets"
-    / "cdeotte"
-    / "60k-data-with-context-v2"
-    / "all_12_with_context2.csv"
+    # / "llm-se-extra-train-datasets"
+    # / "cdeotte"
+    # / "60k-data-with-context-v2"
+    # / "all_12_with_context2.csv"
+    #
+    # / "llm-se-extra-train-datasets/wuwenmin/llm-sci-eval300-gpt4-corrected/eval300_gpt4.csv"
+    #
+    / "llm-se-extra-train-datasets/yalickj/dataset-wiki-new-1/dataset_wiki_new_1_balanced.csv"
     #
     # / "kaggle-llm-science-exam"
     # / "train.csv"

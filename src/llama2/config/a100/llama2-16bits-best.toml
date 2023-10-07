@@ -5,8 +5,9 @@ project_name = "07-16bits-after-270k"
 #exp_name = "r-512-a-512-270k-sci"
 #exp_name = "r-128-a-512-270k-sci"
 #exp_name = "r-128-a-512-270k-60k"
-exp_name = "v4-r-128-a-512-270k-60k"
-
+#exp_name = "v4-r-128-a-512-270k-60k"
+#exp_name = "r-512-270k"
+exp_name = "r-128-a-128-270k-with-valid-200+c300"
 
 [model]
 family = "Llama2"
@@ -27,16 +28,19 @@ additional_datasets = [
 #    "cdeotte/40k-data-with-context-v2/ScienceQA"
 #    "yalickj/dataset-wiki-new-1",  # added to valid
 ]
+valid_additional_datasets = [
+    "wuwenmin/llm-sci-eval300-gpt4-corrected"
+]
 train_test_split = false
 test_size = 1
 with_context = true
 
 [dataset.context]
-#version = 3
-#top_n_sentences = 3
+version = 3
+top_n_sentences = 3
 
-version = 4
-top_n_sentences = 5
+#version = 4
+#top_n_sentences = 5
 
 #upper_limit_of_n_words = 200
 #upper_limit_of_n_words = 300
@@ -53,28 +57,18 @@ upper_limit_of_n_words = -1
 #save_steps = 200
 
 per_device_train_batch_size = 1
-#per_device_train_batch_size = 1
-#per_device_eval_batch_size = 1
 per_device_eval_batch_size = 8
-#gradient_accumulation_steps = 2
-#gradient_accumulation_steps = 4
-gradient_accumulation_steps = 8
+gradient_accumulation_steps = 2
 
-logging_steps = 200
-save_steps = 200
-#logging_steps = 2000
-#save_steps = 2000
-#logging_steps = 800  # batch size 2
-#save_steps = 800  # batch size 2
-#logging_steps = 400
-#save_steps = 400
+logging_steps = 800
+save_steps = 800
 
 #logging_steps = 20
 #save_steps = 20
 save_total_limit = 2
 
-#learning_rate = 2e-5  # batch 2
-learning_rate = 4e-5
+learning_rate = 2e-5  # batch 2
+#learning_rate = 4e-5
 
 weight_decay = 0.001
 
@@ -100,6 +94,7 @@ r = 128
 #r = 8
 
 #alpha = 64
-alpha = 512
+alpha = 128
+#alpha = 512
 
 dropout = 0.1

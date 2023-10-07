@@ -113,6 +113,14 @@ def get_dataset(
                 801,
                 df_collator=lambda df: df.groupby("page_title").head(1),
             )
+
+        if "wuwenmin/llm-sci-eval300-gpt4-corrected" in additional_datasets:
+            train_df = add_extra_df(
+                train_df,
+                "wuwenmin/llm-sci-eval300-gpt4-corrected/eval300_gpt4.csv",
+                300,
+            )
+
         return train_df
 
     df = pd.read_csv(kaggle_dataset_dir_path / f"{'train' if dataset_type in ['train', 'valid'] else 'test'}.csv")

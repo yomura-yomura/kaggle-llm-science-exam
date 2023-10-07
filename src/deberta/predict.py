@@ -20,8 +20,11 @@ import llm_science_exam.score
 
 parser = argparse.ArgumentParser()
 parser.add_argument("checkpoint_path", type=str)
-parser.add_argument("--valid-type", "-v", choices=["200", "200+300", "200+800", "800"], default="200")
+parser.add_argument("--context-version", "-c", type=int, choices=[3, 4], default=None)
+parser.add_argument("--valid-type", "-v", choices=["200", "200+300", "200+c300", "200+800", "800"], default="200")
 args = parser.parse_args()
+
+context_version = args.context_version
 
 ckpt_path = args.checkpoint_path
 # ckpt_path = "models/deberta-v3-large/01-base/test-shuffled"
@@ -44,6 +47,8 @@ match args.valid_type:
         pass
     case "200+300":
         config["dataset"]["valid_additional_datasets"] = ["yalickj/dataset-wiki-new-1"]
+    case "200+c300":
+        config["dataset"]["valid_additional_datasets"] = ["wuwenmin/llm-sci-eval300-gpt4-corrected"]
     case "200+800":
         config["dataset"]["valid_additional_datasets"] = [
             "takeshisuzuki/additional-dataset-800articles-4000rows/only-q1"
@@ -56,20 +61,30 @@ match args.valid_type:
     case _:
         assert False
 
+config["dataset"]["context"]["top_n_sentences"] = 3
+
+if context_version is not None:
+    config["dataset"]["context"]["version"] = context_version
+else:
+    context_version = config["dataset"]["context"]["version"]
+
+print(f"{context_version = }")
+
 dataset = llm_science_exam.data.dataset.get_dataset(dataset_type, config["dataset"])[dataset_type]
 df = dataset.to_pandas()
 df = df.dropna()
 
+print(f"{df['context'].iloc[-1]}")
 
 dataset = Dataset.from_pandas(df, preserve_index=False)
 
-print(len(df))
+print(f"{len(df) = }")
 
 
-prob_path = ckpt_path / f"prob-{args.valid_type}.csv"
+prob_path = ckpt_path / f"prob-{args.valid_type}-v{context_version}.csv"
 
 if prob_path.exists():
-    probs = pd.read_csv(prob_path).to_numpy(str)
+    probs = pd.read_csv(prob_path).to_numpy("f8")
 else:
     model, tokenizer = llm_science_exam.model.deberta.model.get_model_from_checkpoint(config["model"], ckpt_path)
     model.cuda()

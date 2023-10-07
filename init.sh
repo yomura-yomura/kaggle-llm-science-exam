@@ -92,7 +92,7 @@ rm -f 15k-high-quality-examples.zip
 
 
 echo "* Download additional dataset: radek1/sci-or-not-sci-hypthesis-testing-pack"
-kaggle datasets download -d radek1/sci-or-not-sci-hypthesis-testing-pack %% \
+kaggle datasets download -d radek1/sci-or-not-sci-hypthesis-testing-pack && \
 unzip -o sci-or-not-sci-hypthesis-testing-pack.zip -d data/llm-se-extra-train-datasets/radek1/sci-or-not-sci-hypthesis-testing-pack
 rm -f sci-or-not-sci-hypthesis-testing-pack.zip
 
@@ -130,6 +130,12 @@ kaggle datasets download -d yalickj/dataset-wiki-new-1 && \
 unzip -o dataset-wiki-new-1.zip -d data/llm-se-extra-train-datasets/yalickj/dataset-wiki-new-1
 rm -f dataset-wiki-new-1.zip
 
+
+mkdir -p data/llm-se-extra-train-datasets/wuwenmin
+
+kaggle datasets download -d wuwenmin/llm-sci-eval300-gpt4-corrected && \
+unzip -o llm-sci-eval300-gpt4-corrected.zip -d data/llm-se-extra-train-datasets/wuwenmin/llm-sci-eval300-gpt4-corrected
+rm -f llm-sci-eval300-gpt4-corrected.zip
 
 mkdir -p data/llm-se-extra-train-datasets/takeshisuzuki
 

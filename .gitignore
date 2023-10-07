@@ -1,7 +1,26 @@
 /data/*
 !/data/.gitkeep
+
 !/data/kaggle-llm-science-exam-with-context/
+/data/kaggle-llm-science-exam-with-context/*
+!/data/kaggle-llm-science-exam-with-context/dataset-metadata.json
+
 !/data/llm-se-add-context-nb/
+
+!/data/llm-se-datasets-with-context-v3/
+/data/llm-se-datasets-with-context-v3/*
+!/data/llm-se-datasets-with-context-v3/dataset-metadata.json
+
+!/data/llm-se-datasets-with-context-v4/
+/data/llm-se-datasets-with-context-v4/*
+!/data/llm-se-datasets-with-context-v4/dataset-metadata.json
+
+!/data/llm-se-extra-train-datasets
+/data/llm-se-extra-train-datasets/*
+!/data/llm-se-extra-train-datasets/dataset-metadata.json
+
+!/data/llm-se-nb-for-ensemble/
+
 
 /dist/*
 !/dist/dataset-metadata.json

@@ -11,17 +11,20 @@ import llm_science_exam.model.llama2
 import llm_science_exam.score
 
 parser = argparse.ArgumentParser()
-parser.add_argument("checkpoint_path", type=pathlib.Path)
+parser.add_argument("checkpoint_path", type=str)
+parser.add_argument("--context-version", "-c", type=int, choices=[3, 4], default=None)
+parser.add_argument("--valid-type", "-v", choices=["200", "200+300", "200+c300", "200+800", "800"], default="200")
 parser.add_argument("--batch-size", "-b", type=int, default=4)
-parser.add_argument("--valid-type", "-v", choices=["200", "200+300", "800"], default="200")
 args = parser.parse_args()
 
-ckpt_path = args.checkpoint_path
+context_version = args.context_version
 
-# config = llm_science_exam.data.config.get_config(config_path)
-# ckpt_path = llm_science_exam.data.config.get_checkpoint_path(config)
+ckpt_path = pathlib.Path(args.checkpoint_path)
 
-# ckpt_path = llm_science_exam.model.checkpoint.get_best_checkpoint_path(ckpt_path)
+if (ckpt_path / "layers").exists():
+    pass
+else:
+    ckpt_path = llm_science_exam.model.checkpoint.get_best_checkpoint_path(ckpt_path)
 config = llm_science_exam.data.config.get_config_from_checkpoint(ckpt_path, drop_log_history=True)
 
 config["dataset"]["context"]["version"] = 3
@@ -37,19 +40,31 @@ match args.valid_type:
         pass
     case "200+300":
         config["dataset"]["valid_additional_datasets"] = ["yalickj/dataset-wiki-new-1"]
+    case "200+c300":
+        config["dataset"]["valid_additional_datasets"] = ["wuwenmin/llm-sci-eval300-gpt4-corrected"]
+    case "200+800":
+        config["dataset"]["valid_additional_datasets"] = [
+            "takeshisuzuki/additional-dataset-800articles-4000rows/only-q1"
+        ]
     case "800":
         config["dataset"]["valid_additional_datasets"] = [
             "takeshisuzuki/additional-dataset-800articles-4000rows/only-q1"
         ]
+        config["dataset"]["test_size"] = 0
     case _:
         assert False
 
+config["dataset"]["context"]["top_n_sentences"] = 3
+if context_version is not None:
+    config["dataset"]["context"]["version"] = context_version
+else:
+    context_version = config["dataset"]["context"]["version"]
 
 dataset = llm_science_exam.data.dataset.get_dataset(dataset_type, config["dataset"])[dataset_type]
 df = dataset.to_pandas()
 
 
-prob_path = ckpt_path / f"prob-{args.valid_type}.csv"
+prob_path = ckpt_path / f"prob-{args.valid_type}-v{context_version}.csv"
 
 if prob_path.exists():
     preds = pd.read_csv(prob_path).to_numpy("f8")
