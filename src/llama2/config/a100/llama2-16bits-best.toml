@@ -7,7 +7,9 @@ project_name = "07-16bits-after-270k"
 #exp_name = "r-128-a-512-270k-60k"
 #exp_name = "v4-r-128-a-512-270k-60k"
 #exp_name = "r-512-270k"
-exp_name = "r-128-a-128-270k-with-valid-200+c300"
+#exp_name = "r-128-a-128-270k-with-valid-200+c300"
+#exp_name = "v4-r-128-a-128-270k-with-valid-200+c300"
+exp_name = "r-512-270k-with-valid-200+c300"
 
 [model]
 family = "Llama2"
@@ -36,11 +38,11 @@ test_size = 1
 with_context = true
 
 [dataset.context]
-version = 3
-top_n_sentences = 3
+#version = 3
+#top_n_sentences = 3
 
-#version = 4
-#top_n_sentences = 5
+version = 4
+top_n_sentences = 5
 
 #upper_limit_of_n_words = 200
 #upper_limit_of_n_words = 300
@@ -84,17 +86,17 @@ optim = "paged_adamw_8bit"
 
 fp16 = true
 
-early_stopping_patience=10
+early_stopping_patience=15
 
 [train.lora]
-#r = 512
-r = 128
+r = 512
+#r = 128
 #r = 64
 #r = 16
 #r = 8
 
-#alpha = 64
-alpha = 128
+alpha = 64
+#alpha = 128
 #alpha = 512
 
 dropout = 0.1

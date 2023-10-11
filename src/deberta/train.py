@@ -109,7 +109,13 @@ label_array = np.array(list("ABCDE"))
 def compute_metrics(p):
     predictions = label_array[np.argsort(p.predictions.tolist())[:, ::-1]]
     labels = label_array[np.expand_dims(p.label_ids.tolist(), axis=1)]
-    return {"MAP@3": llm_science_exam.score.map_at_3(labels, predictions)}
+    if len(predictions) > 200:
+        return {
+            "MAP@3": llm_science_exam.score.map_at_3(labels, predictions),
+            "old_MAP@3": llm_science_exam.score.map_at_3(labels[:200], predictions[:200]),
+        }
+    else:
+        return {"MAP@3": llm_science_exam.score.map_at_3(labels, predictions)}
 
 
 # def map_at_3(predictions, labels):

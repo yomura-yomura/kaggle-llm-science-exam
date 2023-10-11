@@ -1,11 +1,6 @@
 project_name = "01-base"
 
-#exp_name = "test-shuffled2"
-#exp_name = "test-max-length-1024"
-#exp_name = "test-max-length-2048"
-exp_name = "test-ml1500-context4-fl16-32bits-with-valid-200+c300"
-#exp_name = "test-v4-ml1500-context5-fl16-32bits-with-valid-200+c300"
-
+exp_name = "test-ml1024-context3-fl18-32bits-with-valid-200+c300"
 #exp_name = "test-v4-ml1500-context5-fl18-32bits"
 
 [model]
@@ -13,8 +8,8 @@ version = "v3"
 size = "large"
 #quant_n_bits = 32
 freeze_embeddings = true
-#freeze_layers = 18
-freeze_layers = 16
+freeze_layers = 18
+#freeze_layers = 16
 #freeze_layers = 14
 
 [dataset]
@@ -24,14 +19,13 @@ additional_datasets = [
 #     "radek1/additional-train-data-for-llm-science-exam",
 #     "radek1/15k-high-quality-examples",
 #     "leonidkulyk/wikipedia-stem-1k",
-    "cdeotte/60k-data-with-context-v2",
-#    "cdeotte/60k-data-with-context-v2/only-stem-generated-by-chatgpt",
+#    "cdeotte/60k-data-with-context-v2",
+    "cdeotte/60k-data-with-context-v2/only-stem-generated-by-chatgpt",
 #    "radek1/sci-or-not-sci-hypthesis-testing-pack/sci",
 #    "cdeotte/40k-data-with-context-v2/ScienceQA"
 #    "takeshisuzuki/additional-dataset-800articles-4000rows"
 ]
 valid_additional_datasets = [
-#    "yalickj/dataset-wiki-new-1",  # added to valid
     "wuwenmin/llm-sci-eval300-gpt4-corrected"
 ]
 
@@ -39,16 +33,16 @@ train_test_split = false
 test_size = 1
 with_context = true
 #max_length = 256
-#max_length = 1024
-max_length = 1500
+max_length = 1024
+#max_length = 1500
 #max_length = 2048
 
 [dataset.context]
-#version = 3  # New Stem Wiki Articles 270k
-#top_n_sentences = 3
+version = 3  # New Stem Wiki Articles 270k
+#version = 4  # old
 
-version = 4  # old
-top_n_sentences = 5
+top_n_sentences = 3
+#top_n_sentences = 5
 
 [train]
 per_device_train_batch_size = 1
@@ -61,8 +55,8 @@ logging_steps = 25
 save_steps = 25
 save_total_limit = 2
 
-optim = "adamw_torch"
-#optim = "paged_adamw_8bit"
+#optim = "adamw_torch"
+optim = "paged_adamw_8bit"
 
 #fp16 = true
 fp16 = false
@@ -78,4 +72,4 @@ warmup_ratio = 0.1
 
 num_train_epochs = 2
 
-early_stopping_patience=20
+early_stopping_patience=10

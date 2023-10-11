@@ -19,7 +19,16 @@ import llm_science_exam.model.llama2.model
 
 parser = argparse.ArgumentParser()
 parser.add_argument("checkpoint_path", type=str)
-args = parser.parse_args(["../deberta/models/deberta-v3-large/01-base/test-ml1500-context4-fl14-32bits-ts/"])
+args = parser.parse_args(
+    [
+        # "../deberta/models/deberta-v3-large/01-base/test-ml1500-context4-fl14-32bits-ts/"
+        # "models/llama2/07-16bits-after-270k/13b/r-128-a-128-270k-with-valid-200+c300"
+        # "models/llama2/07-16bits-after-270k/13b/v4-r-128-a-128-270k-with-valid-200+c300"
+        # "../deberta/models/deberta-v3-large/01-base/test-ml1500-context4-fl16-32bits-with-valid-200+c300"
+        # "../deberta/models/deberta-v3-large/01-base/test-v4-ml1500-context4-fl16-32bits-with-valid-200+c300"
+        "../deberta/models/deberta-v3-large/01-base/test-ml1500-context4-fl16-32bits-with-valid-200+c300"
+    ]
+)
 
 ckpt_path = args.checkpoint_path
 ckpt_path = llm_science_exam.model.checkpoint.get_latest_checkpoint_path(ckpt_path)

@@ -18,6 +18,30 @@ kaggle datasets download -d mbanaei/stem-wiki-cohere-no-emb && \
 unzip -o stem-wiki-cohere-no-emb.zip -d data/stem-wiki-cohere-no-emb
 rm -f stem-wiki-cohere-no-emb.zip
 
+echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v2"
+kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v2 && \
+unzip -o llm-se-datasets-with-context-v2.zip -d data/llm-se-datasets-with-context-v2
+rm -f llm-se-datasets-with-context-v2.zip
+
+echo "* Download additional dataset: ranchantan/llm-se-extra-train-datasets"
+kaggle datasets download -d ranchantan/llm-se-extra-train-datasets && \
+unzip -o llm-se-extra-train-datasets.zip -d data/llm-se-extra-train-datasets
+rm -f llm-se-extra-train-datasets.zip
+
+echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v3"
+kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v3 && \
+unzip -o llm-se-datasets-with-context-v3.zip -d data/llm-se-datasets-with-context-v3
+rm -f llm-se-datasets-with-context-v3.zip
+
+echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v4"
+kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v4 && \
+unzip -o llm-se-datasets-with-context-v4.zip -d data/llm-se-datasets-with-context-v4
+rm -f llm-se-datasets-with-context-v4.zip
+
+
+
+
+
 
 echo "* Download the faiss-index of the Wiki 270k STEM dataset: bge-small-faiss"
 kaggle datasets download -d simjeg/bge-small-faiss && \
@@ -104,17 +128,6 @@ echo "* Download additional dataset: leonidkulyk/wikipedia-stem-1k"
 kaggle datasets download -d leonidkulyk/wikipedia-stem-1k && \
 unzip -o wikipedia-stem-1k.zip -d data/llm-se-extra-train-datasets/leonidkulyk/wikipedia-stem-1k
 rm -f wikipedia-stem-1k.zip
-
-
-echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v2"
-kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v2 && \
-unzip -o llm-se-datasets-with-context-v2.zip -d data/llm-se-datasets-with-context-v2
-rm -f llm-se-datasets-with-context-v2.zip
-
-echo "* Download additional dataset: ranchantan/llm-se-datasets-with-context-v3"
-kaggle datasets download -d ranchantan/llm-se-datasets-with-context-v3 && \
-unzip -o llm-se-datasets-with-context-v3.zip -d data/llm-se-datasets-with-context-v3
-rm -f llm-se-datasets-with-context-v3.zip
 
 
 echo "* Download additional wiki-stem-articles dataset: ranchantan/llm-se-additional-wiki-stem-articles"
