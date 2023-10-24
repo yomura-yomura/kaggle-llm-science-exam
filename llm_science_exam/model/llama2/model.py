@@ -37,9 +37,6 @@ def get_model(model_config: ModelConfig) -> tuple[LlamaForCausalLM, LlamaTokeniz
     return model, tokenizer
 
 
-
-
-
 def get_model_dir_path(model_config: ModelConfig) -> pathlib.Path:
     if model_config["family"] == "Llama2":
         if model_config["size"] == "7B":

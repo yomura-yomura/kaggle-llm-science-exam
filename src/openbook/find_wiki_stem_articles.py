@@ -3,7 +3,9 @@ import pathlib
 
 import datasets
 import numpy as np
+import pandas as pd
 import polars as pl
+from sklearn.cluster import KMeans
 
 # fmt: off
 target_articles = [
@@ -81,9 +83,6 @@ else:
     np.savez(npz_path, title=docs_titles, emb=doc_embeddings_array)
 
 
-import numpy as np
-from sklearn.cluster import KMeans
-
 print("clustering")
 
 cluster_number_dict = {}
@@ -110,8 +109,6 @@ for num_clusters in [
 
 # target_cluster_num = 20
 
-
-import pandas as pd
 
 counts_df_dict = {
     k: pd.value_counts([v[i] for i, title in enumerate(docs_titles) if title in target_articles])
@@ -214,6 +211,3 @@ matched_cohere_df = (
 matched_cohere_df = matched_cohere_df.to_pandas()
 # matched_cohere_df.to_parquet("additional_cohere.parquet")  # 250_165 of 2078_760
 matched_cohere_df.to_csv("additional_cohere.csv", index=False)
-
-
-

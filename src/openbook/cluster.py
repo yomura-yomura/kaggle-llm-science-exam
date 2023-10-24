@@ -1,3 +1,8 @@
+import numpy as np
+import plotly.express as px
+import umap
+from sklearn.cluster import KMeans
+
 import llm_science_exam.data
 import llm_science_exam.open_book
 
@@ -23,18 +28,15 @@ for dateset_type in ["train", "valid"]:
     )[""]
     embeddings_dict[dateset_type] = llm_science_exam.open_book.predict.get_embeddings(model, sentences)
 
-from sklearn.cluster import KMeans
 
 k_means = KMeans(n_clusters=3, random_state=0, n_init=1)
 k_means.fit(embeddings_dict["train"])
 df["cluster_id"] = k_means.predict(embeddings_dict["train"])
 
-import umap
 
 reducer = umap.UMAP(n_components=2)
 x = reducer.fit_transform(embeddings_dict["valid"])
-import numpy as np
-import plotly.express as px
+
 
 fig = px.scatter(
     x=x[:, 0],

@@ -1,10 +1,3 @@
-import numpy as np
-import pandas as pd
-import tqdm
-from datasets import Dataset
-
-from . import predict, search
-from .model import get_model
 import ctypes
 import gc
 import re
@@ -12,12 +5,18 @@ import time
 
 import blingfire as bf
 import faiss
+import numpy as np
 import pandas as pd
 
 # For RAG
 import torch
+import tqdm
+from datasets import Dataset
 from scipy.spatial.distance import cdist
 from sentence_transformers import SentenceTransformer
+
+from . import predict, search
+from .model import get_model
 
 
 def get_context(

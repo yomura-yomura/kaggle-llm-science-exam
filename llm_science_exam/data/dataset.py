@@ -19,6 +19,8 @@ class DatasetConfig(TypedDict, total=False):
     test_size: float
     with_context: bool
 
+    max_length: int
+
     context: "DatasetContextConfig"
 
 

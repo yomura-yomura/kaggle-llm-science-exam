@@ -1,3 +1,1 @@
-from . import utils
-from . import tf_idf
-from . import sf_faiss
+from . import sf_faiss, tf_idf, utils

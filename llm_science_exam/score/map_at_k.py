@@ -1,8 +1,8 @@
 """
 Copied from https://www.kaggle.com/code/nandeshwar/mean-average-precision-map-k-metric-explained-code/notebook
 """
-from typing import Literal
 from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
 

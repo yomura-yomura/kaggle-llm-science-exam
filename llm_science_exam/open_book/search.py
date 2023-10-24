@@ -194,6 +194,7 @@ def sentencize(
     :param document_ids: Iterable containing document unique identifiers
     :param offsets: Iterable tuple of the start and end indices
     :param filter_len: Minimum character length of a sentence (otherwise filter out)
+    :param disable_progress_bar: Disable showing progress bar
     :return: Pandas DataFrame containing the columns `document_id`, `text`, `section`, `offset`
     """
 

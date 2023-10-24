@@ -5,7 +5,6 @@ from typing import Any, Literal, TypedDict
 
 import tomli
 
-# from ..model import deberta, llama2
 from ..typing import FilePath
 from .dataset import DatasetConfig
 
@@ -20,6 +19,8 @@ class Config(TypedDict, total=False):
 
 
 class TrainConfig(TypedDict):
+    pretrained_model: str | None
+
     per_device_train_batch_size: int
     per_device_eval_batch_size: int
     gradient_accumulation_steps: int
